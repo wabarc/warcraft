@@ -78,7 +78,7 @@ releases: $(tar_releases) $(zip_releases)
 
 clean:
 	rm -f $(PACKDIR)/*
-	rm -f *.warc.gz
+	rm -f *.warc*
 
 tag:
 	git tag v$(VERSION)

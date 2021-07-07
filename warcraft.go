@@ -67,7 +67,12 @@ func (warc *Warcraft) Download(u *url.URL) (string, error) {
 		return "", err
 	}
 
-	dst := name + ".warc.gz"
+	// For WARC Archive version 1.0
+	dst := name + ".warc"
+	if helper.Exists(dst) {
+		return dst, nil
+	}
+	dst += ".gz"
 
 	return dst, nil
 }
