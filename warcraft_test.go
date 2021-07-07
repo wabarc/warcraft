@@ -47,6 +47,7 @@ func TestDownload(t *testing.T) {
 	defer os.Remove(path)
 
 	if !helper.Exists(path) {
+		t.Log(path)
 		t.Errorf(`download warc file failed`)
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/wabarc/helper"
@@ -51,7 +52,7 @@ func (warc *Warcraft) Download(u *url.URL) (string, error) {
 		return "", err
 	}
 
-	name := filepath.Join(warc.BasePath, helper.RandString(10, ""))
+	name := filepath.Join(warc.BasePath, strings.TrimSuffix(helper.FileName(u.String(), ""), ".html"))
 	args := []string{
 		"--delete-after", "--no-directories",
 		"--recursive", "--level=1",
