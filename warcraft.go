@@ -54,18 +54,16 @@ func (warc *Warcraft) Download(u *url.URL) (string, error) {
 
 	name := filepath.Join(warc.BasePath, strings.TrimSuffix(helper.FileName(u.String(), ""), ".html"))
 	args := []string{
-		"--delete-after", "--no-directories",
-		"--recursive", "--level=1",
+		"--no-config", "--no-directories", "--no-verbose", "--no-netrc", "--no-check-certificate",
+		"--delete-after", "--recursive", "--level=1", "--tries=3",
+		"--warc-tempdir=" + warc.BasePath,
 		"--warc-file=" + name,
 		u.String(),
 	}
-	cmd := exec.Command(binPath, args...)
-	if err := cmd.Start(); err != nil {
-		return "", err
-	}
-	if err := cmd.Wait(); err != nil {
-		return "", err
-	}
+	cmd := exec.CommandContext(ctx, binPath, args...)
+	cmd.Dir = warc.BasePath
+	// TODO: handle error
+	_ = cmd.Run()
 
 	// For WARC Archive version 1.0
 	dst := name + ".warc"
