@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/url"
@@ -51,7 +52,7 @@ func main() {
 				return
 			}
 
-			if path, err := warc.Download(in); err != nil {
+			if path, err := warc.Download(context.Background(), in); err != nil {
 				fmt.Fprintf(os.Stderr, "warcraft: %v\n", err)
 			} else {
 				fmt.Fprintf(os.Stdout, "%s  %s\n", strings.TrimLeft(path, pwd), uri)

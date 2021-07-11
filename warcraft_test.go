@@ -5,6 +5,7 @@
 package warcraft // import "github.com/wabarc/warcraft"
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -40,7 +41,7 @@ func TestDownload(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	warc := New()
-	path, err := warc.Download(in)
+	path, err := warc.Download(context.TODO(), in)
 	if err != nil {
 		t.Fatal(err)
 	}

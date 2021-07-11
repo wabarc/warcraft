@@ -5,6 +5,7 @@
 package warcraft // import "github.com/wabarc/warcraft"
 
 import (
+	"context"
 	"net/url"
 	"os"
 	"os/exec"
@@ -32,7 +33,7 @@ func New() *Warcraft {
 
 // Download
 // wget --delete-after --no-directories --warc-file=google --recursive --level=1 URI
-func (warc *Warcraft) Download(u *url.URL) (string, error) {
+func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) {
 	if warc.BasePath == "" {
 		pwd, err := os.Getwd()
 		if err != nil {
