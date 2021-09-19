@@ -8,6 +8,7 @@ on:
 env:
   PRODUCT: warcraft
 
+permissions: write-all
 jobs:
   build:
     name: Checkout, build, archive, upload

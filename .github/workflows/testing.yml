@@ -18,6 +18,7 @@ on:
       - "go.sum"
       - ".github/workflows/testing.yml"
 
+permissions: write-all
 jobs:
   test:
     name: Testing
