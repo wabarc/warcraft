@@ -31,8 +31,7 @@ func New() *Warcraft {
 	}
 }
 
-// Download
-// wget --delete-after --no-directories --warc-file=google --recursive --level=1 URI
+// Download webpage as warc via wget
 func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) {
 	if warc.BasePath == "" {
 		pwd, err := os.Getwd()
@@ -53,18 +52,31 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 		return "", err
 	}
 
+	// WGET CLI Docs: https://www.gnu.org/software/wget/manual/wget.html
 	name := filepath.Join(warc.BasePath, strings.TrimSuffix(helper.FileName(u.String(), ""), ".html"))
 	args := []string{
 		"--no-config", "--no-directories", "--no-verbose", "--no-netrc", "--no-check-certificate",
-		"--delete-after", "--recursive", "--level=1", "--tries=3",
-		"--warc-tempdir=" + warc.BasePath,
-		"--warc-file=" + name,
+		"--no-hsts", "--no-parent", "--timestamping", "--adjust-extension", "--convert-links",
+		"--span-hosts", "--delete-after", "--tries=3", "--compression=auto", "-e robots=off",
+		"--page-requisites", "--warc-tempdir=" + warc.BasePath, "--warc-file=" + name,
 		u.String(),
 	}
 	cmd := exec.CommandContext(ctx, binPath, args...)
 	cmd.Dir = warc.BasePath
-	// TODO: handle error
-	_ = cmd.Run()
+	// _, err = cmd.StdoutPipe()
+	// if err != nil {
+	// 	return "", err
+	// }
+	// cmd.Stderr = cmd.Stdout
+
+	// We must start the cmd before calling cmd.Wait, as otherwise the two
+	// can run into a data race.
+	if err := cmd.Start(); err != nil {
+		return "", errors.Wrap(err, "starts wget failed")
+	}
+	// First wait for the process to be finished.
+	// Don't care about this error in any scenario.
+	_ = cmd.Wait()
 
 	// For WARC Archive version 1.0
 	dst := name + ".warc"
