@@ -17,9 +17,13 @@ import (
 	"github.com/wabarc/helper"
 )
 
+var userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36"
+
 // Warcraft represents warcraft config.
 type Warcraft struct {
 	BasePath string // base path of warc file, defaults to current directory
+
+	userAgent string
 }
 
 // New a Warcraft struct
@@ -27,8 +31,17 @@ func New() *Warcraft {
 	pwd, _ := os.Getwd()
 
 	return &Warcraft{
-		BasePath: pwd,
+		BasePath:  pwd,
+		userAgent: userAgent,
 	}
+}
+
+// UserAgent set User-Agent for wget
+func (warc *Warcraft) UserAgent(s string) *Warcraft {
+	if s != "" {
+		warc.userAgent = s
+	}
+	return warc
 }
 
 // Download webpage as warc via wget
@@ -58,7 +71,9 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 		"--no-config", "--no-directories", "--no-verbose", "--no-netrc", "--no-check-certificate",
 		"--no-hsts", "--no-parent", "--timestamping", "--adjust-extension", "--convert-links",
 		"--span-hosts", "--delete-after", "--tries=3", "--compression=auto", "-e robots=off",
-		"--page-requisites", "--warc-tempdir=" + warc.BasePath, "--warc-file=" + name,
+		"--page-requisites", "--user-agent=" + warc.userAgent,
+		"--warc-tempdir=" + warc.BasePath,
+		"--warc-file=" + name,
 		u.String(),
 	}
 	cmd := exec.CommandContext(ctx, binPath, args...)
