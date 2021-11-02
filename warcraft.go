@@ -78,20 +78,11 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	}
 	cmd := exec.CommandContext(ctx, binPath, args...)
 	cmd.Dir = warc.BasePath
-	// _, err = cmd.StdoutPipe()
-	// if err != nil {
-	// 	return "", err
-	// }
-	// cmd.Stderr = cmd.Stdout
-
-	// We must start the cmd before calling cmd.Wait, as otherwise the two
-	// can run into a data race.
-	if err := cmd.Start(); err != nil {
-		return "", errors.Wrap(err, "starts wget failed")
+	if err := cmd.Run(); err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return "", exitError
+		}
 	}
-	// First wait for the process to be finished.
-	// Don't care about this error in any scenario.
-	_ = cmd.Wait()
 
 	// For WARC Archive version 1.0
 	dst := name + ".warc"
