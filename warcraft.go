@@ -69,9 +69,9 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	name := filepath.Join(warc.BasePath, strings.TrimSuffix(helper.FileName(u.String(), ""), ".html"))
 	args := []string{
 		"--no-config", "--no-directories", "--no-verbose", "--no-netrc", "--no-check-certificate",
-		"--no-hsts", "--no-parent", "--timestamping", "--adjust-extension", "--convert-links",
-		"--span-hosts", "--delete-after", "--tries=3", "--compression=auto", "-e robots=off",
-		"--page-requisites", "--user-agent=" + warc.userAgent,
+		"--no-hsts", "--no-parent", "--adjust-extension", "--convert-links",
+		"--span-hosts", "--tries=3", "-e robots=off", "--page-requisites",
+		"--user-agent=" + warc.userAgent,
 		"--warc-tempdir=" + warc.BasePath,
 		"--warc-file=" + name,
 		u.String(),
