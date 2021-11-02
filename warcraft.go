@@ -80,7 +80,10 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	cmd.Dir = warc.BasePath
 	if err := cmd.Run(); err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
-			return "", exitError
+			// Ignore server issued error response
+			if exitError.ExitCode() != 8 {
+				return "", exitError
+			}
 		}
 	}
 
