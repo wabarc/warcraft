@@ -70,7 +70,7 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	args := []string{
 		"--no-config", "--no-directories", "--no-verbose", "--no-netrc", "--no-check-certificate",
 		"--no-hsts", "--no-parent", "--adjust-extension", "--convert-links", "--delete-after",
-		"--span-hosts", "--tries=3", "-e robots=off", "--page-requisites",
+		"--span-hosts", "--random-wait", "-e robots=off", "--page-requisites",
 		"--user-agent=" + warc.userAgent,
 		"--warc-tempdir=" + warc.BasePath,
 		"--warc-file=" + name,
