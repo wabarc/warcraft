@@ -73,8 +73,9 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	args := []string{
 		"--no-config", "--no-directories", "--no-netrc", "--no-check-certificate", "--no-hsts", "--no-parent",
 		"--adjust-extension", "--convert-links", "--delete-after", "--span-hosts", "--random-wait",
-		"-e robots=off", "--page-requisites", "--quiet=" + warc.quiet(),
-		"--user-agent=" + warc.userAgent,
+		"-e robots=off", "--page-requisites", "--header=Accept-Encoding: *",
+		"--quiet=" + warc.quiet(), "--user-agent=" + warc.userAgent,
+		fmt.Sprintf("--referer=%s://%s", u.Scheme, u.Hostname()),
 		"--warc-tempdir=" + warc.BasePath,
 		"--warc-file=" + name,
 		u.String(),
