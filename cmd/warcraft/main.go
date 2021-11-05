@@ -12,10 +12,13 @@ import (
 	"github.com/wabarc/warcraft"
 )
 
+var verbose bool
+
 func init() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage:\n\n")
-		fmt.Fprintf(os.Stderr, "  warcraft [options] [url1] ... [urlN]\n")
+		fmt.Fprintf(os.Stderr, "  warcraft [flags] [url1] ... [urlN]\n\n")
+		fmt.Fprintf(os.Stderr, "Flags:\n\n")
 
 		flag.PrintDefaults()
 	}
@@ -25,6 +28,7 @@ func init() {
 		fmt.Fprint(os.Stderr, "\n")
 	}
 
+	flag.BoolVar(&verbose, "verbose", false, "Turn on wget verboseness.")
 	flag.Parse()
 
 	args := flag.Args()
@@ -39,6 +43,7 @@ func init() {
 func main() {
 	uris := flag.Args()
 	warc := warcraft.New()
+	warc.Verbose = verbose
 
 	pwd, _ := os.Getwd()
 

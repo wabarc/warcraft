@@ -6,6 +6,8 @@ package warcraft // import "github.com/wabarc/warcraft"
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"os/exec"
@@ -22,6 +24,7 @@ var userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
 // Warcraft represents warcraft config.
 type Warcraft struct {
 	BasePath string // base path of warc file, defaults to current directory
+	Verbose  bool
 
 	userAgent string
 }
@@ -68,9 +71,9 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	// WGET CLI Docs: https://www.gnu.org/software/wget/manual/wget.html
 	name := filepath.Join(warc.BasePath, strings.TrimSuffix(helper.FileName(u.String(), ""), ".html"))
 	args := []string{
-		"--no-config", "--no-directories", "--no-verbose", "--no-netrc", "--no-check-certificate",
-		"--no-hsts", "--no-parent", "--adjust-extension", "--convert-links", "--delete-after",
-		"--span-hosts", "--random-wait", "-e robots=off", "--page-requisites",
+		"--no-config", "--no-directories", "--no-netrc", "--no-check-certificate", "--no-hsts", "--no-parent",
+		"--adjust-extension", "--convert-links", "--delete-after", "--span-hosts", "--random-wait",
+		"-e robots=off", "--page-requisites", "--quiet=" + warc.quiet(),
 		"--user-agent=" + warc.userAgent,
 		"--warc-tempdir=" + warc.BasePath,
 		"--warc-file=" + name,
@@ -78,7 +81,12 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	}
 	cmd := exec.CommandContext(ctx, binPath, args...)
 	cmd.Dir = warc.BasePath
-	if err := cmd.Run(); err != nil {
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", err
+	}
+	cmd.Stderr = cmd.Stdout
+	if err := cmd.Start(); err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			// Ignore server issued error response
 			if exitError.ExitCode() != 8 {
@@ -86,6 +94,13 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 			}
 		}
 	}
+	if warc.Verbose {
+		readOutput(stdout)
+	}
+
+	// First wait for the process to be finished.
+	// Don't care about this error in any scenario.
+	_ = cmd.Wait()
 
 	// For WARC Archive version 1.0
 	dst := name + ".warc"
@@ -95,6 +110,13 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	dst += ".gz"
 
 	return dst, nil
+}
+
+func (warc *Warcraft) quiet() string {
+	if warc.Verbose {
+		return "off"
+	}
+	return "on"
 }
 
 func findWgetExecPath() (string, error) {
@@ -128,4 +150,15 @@ func findWgetExecPath() (string, error) {
 	}
 
 	return "", errors.New("wget not found")
+}
+
+func readOutput(rc io.ReadCloser) {
+	for {
+		out := make([]byte, 1024)
+		_, err := rc.Read(out)
+		fmt.Print(string(out))
+		if err != nil {
+			break
+		}
+	}
 }
