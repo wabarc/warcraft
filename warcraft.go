@@ -19,32 +19,22 @@ import (
 	"github.com/wabarc/helper"
 )
 
-var userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36"
-
 // Warcraft represents warcraft config.
 type Warcraft struct {
-	BasePath string // base path of warc file, defaults to current directory
-	Verbose  bool
-
-	userAgent string
+	BasePath  string // base path of warc file, defaults to current directory
+	UserAgent string
+	Verbose   bool
 }
 
 // New a Warcraft struct
 func New() *Warcraft {
 	pwd, _ := os.Getwd()
 
+	userAgent := "Mozilla/5.0 (en-us) AppleWebKit/525.13 (KHTML, like Gecko) Version/3.1 Safari/525.13"
 	return &Warcraft{
 		BasePath:  pwd,
-		userAgent: userAgent,
+		UserAgent: userAgent,
 	}
-}
-
-// UserAgent set User-Agent for wget
-func (warc *Warcraft) UserAgent(s string) *Warcraft {
-	if s != "" {
-		warc.userAgent = s
-	}
-	return warc
 }
 
 // Download webpage as warc via wget
@@ -72,10 +62,9 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	name := filepath.Join(warc.BasePath, strings.TrimSuffix(helper.FileName(u.String(), ""), ".html"))
 	args := []string{
 		"--no-config", "--no-directories", "--no-netrc", "--no-check-certificate", "--no-hsts", "--no-parent",
-		"--adjust-extension", "--convert-links", "--delete-after", "--span-hosts", "--random-wait",
-		"-e robots=off", "--page-requisites", "--header=Accept-Encoding: *",
-		"--quiet=" + warc.quiet(), "--user-agent=" + warc.userAgent,
-		fmt.Sprintf("--referer=%s://%s", u.Scheme, u.Hostname()),
+		"--adjust-extension", "--convert-links", "--delete-after", "--span-hosts", "--random-wait", "-e robots=off",
+		"--max-redirect=0", "--page-requisites", `--header="Accept-Encoding: *"`, "--quiet=" + warc.quiet(),
+		fmt.Sprintf("--user-agent=%q", warc.UserAgent), fmt.Sprintf("--referer=%s://%s", u.Scheme, u.Hostname()),
 		"--warc-tempdir=" + warc.BasePath,
 		"--warc-file=" + name,
 		u.String(),

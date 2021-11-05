@@ -61,6 +61,7 @@ func TestUserAgent(t *testing.T) {
 	_, mux, server := helper.MockServer()
 	defer server.Close()
 
+	userAgent := "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		ua := r.Header.Get("User-Agent")
 		if ua != userAgent {
@@ -81,7 +82,7 @@ func TestUserAgent(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	warc := New()
+	warc := &Warcraft{UserAgent: userAgent}
 	path, err := warc.Download(context.TODO(), in)
 	if err != nil {
 		t.Fatal(err)
