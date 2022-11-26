@@ -71,6 +71,7 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	}
 	cmd := exec.CommandContext(ctx, binPath, args...)
 	cmd.Dir = warc.BasePath
+	appendEnv(cmd)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return "", err
@@ -149,6 +150,18 @@ func readOutput(rc io.ReadCloser) {
 		fmt.Print(string(out))
 		if err != nil {
 			break
+		}
+	}
+}
+
+func appendEnv(cmd *exec.Cmd) {
+	keys := []string{"HTTP_PROXY", "HTTPS_PROXY", "FTP_PROXY", "NO_PROXY"}
+	for _, key := range keys {
+		if os.Getenv(strings.ToLower(key)) != "" {
+			continue
+		}
+		if val := os.Getenv(key); val != "" {
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", strings.ToLower(key), val))
 		}
 	}
 }
