@@ -51,9 +51,10 @@ jobs:
       id: digest
       run: |
         digest=$(find ${{ env.PRODUCT }}* -type f -exec sha256sum {} +)
-        digest="${digest//$'%'/%25}"
-        digest="${digest//$'\n'/%0A}"
-        echo "result=${digest}" >> $GITHUB_OUTPUT
+        delimiter="$(openssl rand -hex 8)"
+        echo "result<<${delimiter}" >> $GITHUB_OUTPUT
+        echo "${digest}" >> $GITHUB_OUTPUT
+        echo "${delimiter}" >> $GITHUB_OUTPUT
 
   release:
     name: Create and upload release
