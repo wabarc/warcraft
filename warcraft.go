@@ -78,11 +78,8 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	}
 	cmd.Stderr = cmd.Stdout
 	if err := cmd.Start(); err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			// Ignore server issued error response
-			if exitError.ExitCode() != 8 {
-				return "", exitError
-			}
+		if err = handleErr(err); err != nil {
+			return "", err
 		}
 	}
 	if warc.Verbose {
@@ -90,8 +87,11 @@ func (warc *Warcraft) Download(ctx context.Context, u *url.URL) (string, error) 
 	}
 
 	// First wait for the process to be finished.
-	// Don't care about this error in any scenario.
-	_ = cmd.Wait()
+	if err = cmd.Wait(); err != nil {
+		if err = handleErr(err); err != nil {
+			return "", err
+		}
+	}
 
 	// For WARC Archive version 1.0
 	dst := name + ".warc"
@@ -164,4 +164,15 @@ func appendEnv(cmd *exec.Cmd) {
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", strings.ToLower(key), val))
 		}
 	}
+}
+
+// https://www.gnu.org/software/wget/manual/html_node/Exit-Status.html
+func handleErr(err error) error {
+	if exitError, ok := err.(*exec.ExitError); ok {
+		// Ignore server issued error response, e.g. client timeout
+		if exitError.ExitCode() != 8 {
+			return exitError
+		}
+	}
+	return nil
 }
