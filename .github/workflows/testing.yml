@@ -18,7 +18,12 @@ on:
       - "go.sum"
       - ".github/workflows/testing.yml"
 
-permissions: write-all
+env:
+  MallocNanoZone: 0
+
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Testing
